@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Super Mario Game - Mobile</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        body {
+            background: linear-gradient(to bottom, #4A90E2, #357ABD);
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+            touch-action: manipulation;
+        }
+        
+        #gameContainer {
+            text-align: center;
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        #gameCanvas {
+            border: 2px solid #333;
+            background: #87CEEB;
+            max-width: 100vw;
+            max-height: 60vh;
+            width: auto;
+            height: auto;
+        }
+        
+        #menu {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            max-width: 90vw;
+            width: 350px;
+        }
+        
+        #startButton {
+            background: #dc2626;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 18px;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 20px;
+            touch-action: manipulation;
+        }
+        
+        #startButton:hover, #startButton:active {
+            background: #b91c1c;
+        }
+        
+        .controls {
+            margin: 15px 0;
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .title {
+            font-size: 24px;
+            font-weight: bold;
+            color: #dc2626;
+            margin-bottom: 15px;
+        }
+        
+        #mobileControls {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 120px;
+            background: rgba(0, 0, 0, 0.3);
+            display: none;
+            z-index: 1000;
+        }
+        
+        .control-button {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.8);
+            border: 2px solid #333;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            font-weight: bold;
+            color: #333;
+            user-select: none;
+            touch-action: manipulation;
+            cursor: pointer;
+        }
+        
+        .control-button:active {
+            background: rgba(255, 255, 255, 1);
+            transform: scale(0.95);
+        }
+        
+        #leftBtn {
+            width: 60px;
+            height: 60px;
+            bottom: 30px;
+            left: 20px;
+        }
+        
+        #rightBtn {
+            width: 60px;
+            height: 60px;
+            bottom: 30px;
+            left: 100px;
+        }
+        
+        #jumpBtn {
+            width: 70px;
+            height: 70px;
+            bottom: 25px;
+            right: 20px;
+            background: rgba(255, 215, 0, 0.8);
+        }
+        
+        #jumpBtn:active {
+            background: rgba(255, 215, 0, 1);
+        }
+        
+        #gameInfo {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            right: 10px;
+            display: none;
+            justify-content: space-between;
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            z-index: 999;
+        }
+        
+        #instructions {
+            position: fixed;
+            top: 50px;
+            left: 10px;
+            right: 10px;
+            color: white;
+            font-size: 12px;
+            text-align: center;
+            display: none;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+        }
+        
+        @media (max-width: 768px) {
+            #gameCanvas {
+                width: 100vw;
+                height: 60vh;
+            }
+            
+            .title {
+                font-size: 20px;
+            }
+            
+            #menu {
+                padding: 15px;
+                margin: 10px;
+            }
+            
+            .controls {
+                font-size: 12px;
+            }
+        }
+        
+        @media (max-height: 600px) {
+            #gameCanvas {
+                height: 50vh;
+            }
+            
+            #mobileControls {
+                height: 100px;
+            }
+            
+            #leftBtn, #rightBtn {
+                width: 50px;
+                height: 50px;
+                bottom: 25px;
+            }
+            
+            #rightBtn {
+                left: 85px;
+            }
+            
+            #jumpBtn {
+                width: 60px;
+                height: 60px;
+                bottom: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="gameContainer">
+        <div id="menu">
+            <div class="title">🍄 Super Mario Game 🍄</div>
+            <p>Welcome to the Mario Adventure!</p>
+            <div class="controls">
+                <strong>Desktop Controls:</strong><br>
+                ← → or A/D: Move<br>
+                ↑ or W or Space: Jump<br>
+                R: Restart (when game over)
+            </div>
+            <div class="controls">
+                <strong>Mobile:</strong><br>
+                Use the on-screen buttons to play!
+            </div>
+            <div class="controls">
+                <strong>Objective:</strong><br>
+                Collect all coins and avoid enemies!<br>
+                Jump on enemies to defeat them!
+            </div>
+            <button id="startButton">Start Game</button>
+        </div>
+        
+        <canvas id="gameCanvas" width="800" height="400" style="display: none;"></canvas>
+        
+        <div id="gameInfo">
+            <div>Score: <span id="scoreDisplay">0</span></div>
+            <div>Lives: <span id="livesDisplay">3</span></div>
+        </div>
+        
+        <div id="instructions">
+            Collect all coins to win! Jump on enemies to defeat them!
+        </div>
+    </div>
+    
+    <div id="mobileControls">
+        <div class="control-button" id="leftBtn">←</div>
+        <div class="control-button" id="rightBtn">→</div>
+        <div class="control-button" id="jumpBtn">↑</div>
+    </div>
+
+    <script>
+        class MarioGame {
+            constructor() {
+                this.canvas = document.getElementById('gameCanvas');
+                this.ctx = this.canvas.getContext('2d');
+                this.gameState = 'menu';
+                this.score = 0;
+                this.lives = 3;
+                this.keys = new Set();
+                this.touches = new Set();
+                
+                this.camera = { x: 0, y: 0 };
+                this.isMobile = this.detectMobile();
+                
+                this.initializeGameObjects();
+                this.setupEventListeners();
+                this.setupMobileControls();
+                this.resizeCanvas();
+            }
+            
+            detectMobile() {
+                return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
+                       ('ontouchstart' in window) || 
+                       (navigator.maxTouchPoints > 0);
+            }
+            
+            resizeCanvas() {
+                const container = document.getElementById('gameContainer');
+                const canvas = this.canvas;
+                
+                if (this.isMobile) {
+                    const maxWidth = window.innerWidth;
+                    const maxHeight = window.innerHeight * 0.6;
+                    
+                    const aspectRatio = 800 / 400;
+                    let canvasWidth = maxWidth;
+                    let canvasHeight = canvasWidth / aspectRatio;
+                    
+                    if (canvasHeight > maxHeight) {
+                        canvasHeight = maxHeight;
+                        canvasWidth = canvasHeight * aspectRatio;
+                    }
+                    
+                    canvas.style.width = canvasWidth + 'px';
+                    canvas.style.height = canvasHeight + 'px';
+                } else {
+                    canvas.style.width = '800px';
+                    canvas.style.height = '400px';
+                }
+            }
+            
+            initializeGameObjects() {
+                this.player = {
+                    x: 50, y: 300, width: 32, height: 32,
+                    vx: 0, vy: 0, onGround: false, direction: 'right'
+                };
+                
+                this.platforms = [
+                    { x: 0, y: 370, width: 800, height: 30 },
+                    { x: 900, y: 370, width: 800, height: 30 },
+                    { x: 200, y: 300, width: 150, height: 15 },
+                    { x: 400, y: 250, width: 150, height: 15 },
+                    { x: 600, y: 200, width: 150, height: 15 },
+                    { x: 800, y: 280, width: 100, height: 15 },
+                    { x: 1000, y: 220, width: 150, height: 15 },
+                    { x: 1200, y: 300, width: 150, height: 15 },
+                    { x: 1400, y: 250, width: 100, height: 15 }
+                ];
+                
+                this.enemies = [
+                    { x: 300, y: 346, width: 24, height: 24, vx: -1, direction: 'left', alive: true },
+                    { x: 500, y: 226, width: 24, height: 24, vx: 1, direction: 'right', alive: true },
+                    { x: 900, y: 346, width: 24, height: 24, vx: -1, direction: 'left', alive: true },
+                    { x: 1100, y: 196, width: 24, height: 24, vx: 1, direction: 'right', alive: true }
+                ];
+                
+                this.coins = [
+                    { x: 250, y: 280, width: 16, height: 16, collected: false },
+                    { x: 450, y: 230, width: 16, height: 16, collected: false },
+                    { x: 650, y: 180, width: 16, height: 16, collected: false },
+                    { x: 850, y: 260, width: 16, height: 16, collected: false },
+                    { x: 1050, y: 200, width: 16, height: 16, collected: false },
+                    { x: 1250, y: 280, width: 16, height: 16, collected: false },
+                    { x: 1450, y: 230, width: 16, height: 16, collected: false }
+                ];
+            }
+            
+            setupEventListeners() {
+                document.getElementById('startButton').addEventListener('click', () => this.startGame());
+                
+                // Keyboard events
+                document.addEventListener('keydown', (e) => {
+                    this.keys.add(e.code);
+                    if (e.code === 'KeyR' && (this.gameState === 'gameOver' || this.gameState === 'won')) {
+                        this.startGame();
+                    }
+                });
+                
+                document.addEventListener('keyup', (e) => {
+                    this.keys.delete(e.code);
+                });
+                
+                // Resize event
+                window.addEventListener('resize', () => this.resizeCanvas());
+                window.addEventListener('orientationchange', () => {
+                    setTimeout(() => this.resizeCanvas(), 100);
+                });
+            }
+            
+            setupMobileControls() {
+                const leftBtn = document.getElementById('leftBtn');
+                const rightBtn = document.getElementById('rightBtn');
+                const jumpBtn = document.getElementById('jumpBtn');
+                
+                // Left button
+                leftBtn.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    this.touches.add('left');
+                });
+                leftBtn.addEventListener('touchend', (e) => {
+                    e.preventDefault();
+                    this.touches.delete('left');
+                });
+                
+                // Right button
+                rightBtn.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    this.touches.add('right');
+                });
+                rightBtn.addEventListener('touchend', (e) => {
+                    e.preventDefault();
+                    this.touches.delete('right');
+                });
+                
+                // Jump button
+                jumpBtn.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    this.touches.add('jump');
+                });
+                jumpBtn.addEventListener('touchend', (e) => {
+                    e.preventDefault();
+                    this.touches.delete('jump');
+                });
+                
+                // Mouse events for desktop testing
+                leftBtn.addEventListener('mousedown', () => this.touches.add('left'));
+                leftBtn.addEventListener('mouseup', () => this.touches.delete('left'));
+                rightBtn.addEventListener('mousedown', () => this.touches.add('right'));
+                rightBtn.addEventListener('mouseup', () => this.touches.delete('right'));
+                jumpBtn.addEventListener('mousedown', () => this.touches.add('jump'));
+                jumpBtn.addEventListener('mouseup', () => this.touches.delete('jump'));
+                
+                // Prevent context menu on long press
+                [leftBtn, rightBtn, jumpBtn].forEach(btn => {
+                    btn.addEventListener('contextmenu', (e) => e.preventDefault());
+                });
+            }
+            
+            startGame() {
+                this.gameState = 'playing';
+                this.score = 0;
+                this.lives = 3;
+                this.camera = { x: 0, y: 0 };
+                
+                document.getElementById('menu').style.display = 'none';
+                document.getElementById('gameCanvas').style.display = 'block';
+                document.getElementById('gameInfo').style.display = 'flex';
+                document.getElementById('instructions').style.display = 'block';
+                
+                if (this.isMobile) {
+                    document.getElementById('mobileControls').style.display = 'block';
+                }
+                
+                this.initializeGameObjects();
+                this.updateUI();
+                this.gameLoop();
+            }
+            
+            updateUI() {
+                document.getElementById('scoreDisplay').textContent = this.score;
+                document.getElementById('livesDisplay').textContent = this.lives;
+            }
+            
+            checkCollision(a, b) {
+                return a.x < b.x + b.width && a.x + a.width > b.x && 
+                       a.y < b.y + b.height && a.y + a.height > b.y;
+            }
+            
+            updateGame() {
+                if (this.gameState !== 'playing') return;
+                
+                // Handle input (keyboard + touch)
+                const leftPressed = this.keys.has('ArrowLeft') || this.keys.has('KeyA') || this.touches.has('left');
+                const rightPressed = this.keys.has('ArrowRight') || this.keys.has('KeyD') || this.touches.has('right');
+                const jumpPressed = this.keys.has('Space') || this.keys.has('ArrowUp') || this.keys.has('KeyW') || this.touches.has('jump');
+                
+                if (leftPressed) {
+                    this.player.vx = -4;
+                    this.player.direction = 'left';
+                } else if (rightPressed) {
+                    this.player.vx = 4;
+                    this.player.direction = 'right';
+                } else {
+                    this.player.vx *= 0.8;
+                }
+                
+                if (jumpPressed && this.player.onGround) {
+                    this.player.vy = -12;
+                    this.player.onGround = false;
+                }
+                
+                // Apply gravity
+                this.player.vy += 0.6;
+                
+                // Update player position
+                this.player.x += this.player.vx;
+                this.player.y += this.player.vy;
+                
+                // Platform collision
+                this.player.onGround = false;
+                for (const platform of this.platforms) {
+                    if (this.checkCollision(this.player, platform)) {
+                        if (this.player.vy > 0 && this.player.y < platform.y) {
+                            this.player.y = platform.y - this.player.height;
+                            this.player.vy = 0;
+                            this.player.onGround = true;
+                        } else if (this.player.vy < 0 && this.player.y > platform.y) {
+                            this.player.y = platform.y + platform.height;
+                            this.player.vy = 0;
+                        } else if (this.player.vx > 0 && this.player.x < platform.x) {
+                            this.player.x = platform.x - this.player.width;
+                        } else if (this.player.vx < 0 && this.player.x > platform.x) {
+                            this.player.x = platform.x + platform.width;
+                        }
+                    }
+                }
+                
+                // Update enemies
+                this.enemies.forEach(enemy => {
+                    if (!enemy.alive) return;
+                    
+                    enemy.x += enemy.vx;
+                    
+                    let onPlatform = false;
+                    for (const platform of this.platforms) {
+                        if (this.checkCollision(enemy, platform)) {
+                            enemy.y = platform.y - enemy.height;
+                            onPlatform = true;
+                            break;
+                        }
+                    }
+                    
+                    if (!onPlatform || enemy.x <= 0 || enemy.x >= 1500) {
+                        enemy.vx *= -1;
+                        enemy.direction = enemy.direction === 'left' ? 'right' : 'left';
+                    }
+                    
+                    if (this.checkCollision(this.player, enemy)) {
+                        if (this.player.vy > 0 && this.player.y < enemy.y) {
+                            enemy.alive = false;
+                            this.player.vy = -8;
+                            this.score += 100;
+                            this.updateUI();
+                        } else {
+                            this.lives--;
+                            this.updateUI();
+                            if (this.lives <= 0) {
+                                this.gameState = 'gameOver';
+                            }
+                            this.player.x = 50;
+                            this.player.y = 300;
+                            this.player.vx = 0;
+                            this.player.vy = 0;
+                        }
+                    }
+                });
+                
+                // Coin collection
+                this.coins.forEach(coin => {
+                    if (!coin.collected && this.checkCollision(this.player, coin)) {
+                        coin.collected = true;
+                        this.score += 50;
+                        this.updateUI();
+                    }
+                });
+                
+                // Check win condition
+                if (this.coins.every(coin => coin.collected)) {
+                    this.gameState = 'won';
+                }
+                
+                // Death by falling
+                if (this.player.y > 450) {
+                    this.lives--;
+                    this.updateUI();
+                    if (this.lives <= 0) {
+                        this.gameState = 'gameOver';
+                    }
+                    this.player.x = 50;
+                    this.player.y = 300;
+                    this.player.vx = 0;
+                    this.player.vy = 0;
+                }
+                
+                // Update camera
+                this.camera.x = Math.max(0, Math.min(this.player.x - 400, 1000));
+            }
+            
+            render() {
+                // Clear canvas
+                this.ctx.fillStyle = '#87CEEB';
+                this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+                
+                this.ctx.save();
+                this.ctx.translate(-this.camera.x, -this.camera.y);
+                
+                if (this.gameState === 'playing' || this.gameState === 'gameOver' || this.gameState === 'won') {
+                    // Draw platforms
+                    this.ctx.fillStyle = '#8B4513';
+                    this.platforms.forEach(platform => {
+                        this.ctx.fillRect(platform.x, platform.y, platform.width, platform.height);
+                    });
+                    
+                    // Draw coins
+                    this.ctx.fillStyle = '#FFD700';
+                    this.coins.forEach(coin => {
+                        if (!coin.collected) {
+                            this.ctx.beginPath();
+                            this.ctx.arc(coin.x + coin.width/2, coin.y + coin.height/2, coin.width/2, 0, Math.PI * 2);
+                            this.ctx.fill();
+                        }
+                    });
+                    
+                    // Draw enemies
+                    this.ctx.fillStyle = '#FF4500';
+                    this.enemies.forEach(enemy => {
+                        if (enemy.alive) {
+                            this.ctx.fillRect(enemy.x, enemy.y, enemy.width, enemy.height);
+                            this.ctx.fillStyle = '#000';
+                            this.ctx.fillRect(enemy.x + 4, enemy.y + 4, 4, 4);
+                            this.ctx.fillRect(enemy.x + 16, enemy.y + 4, 4, 4);
+                            this.ctx.fillStyle = '#FF4500';
+                        }
+                    });
+                    
+                    // Draw player
+                    this.ctx.fillStyle = '#FF0000';
+                    this.ctx.fillRect(this.player.x, this.player.y, this.player.width, this.player.height);
+                    
+                    this.ctx.fillStyle = '#FFDBAC';
+                    this.ctx.fillRect(this.player.x + 8, this.player.y + 4, 16, 12);
+                    
+                    this.ctx.fillStyle = '#FF0000';
+                    this.ctx.fillRect(this.player.x + 4, this.player.y, 24, 8);
+                    
+                    this.ctx.fillStyle = '#000';
+                    this.ctx.fillRect(this.player.x + 10, this.player.y + 8, 2, 2);
+                    this.ctx.fillRect(this.player.x + 20, this.player.y + 8, 2, 2);
+                    this.ctx.fillRect(this.player.x + 12, this.player.y + 12, 8, 2);
+                }
+                
+                this.ctx.restore();
+                
+                if (this.gameState === 'gameOver') {
+                    this.ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+                    this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+                    this.ctx.fillStyle = '#FFF';
+                    this.ctx.font = '36px Arial';
+                    this.ctx.textAlign = 'center';
+                    this.ctx.fillText('Game Over!', this.canvas.width/2, this.canvas.height/2);
+                    this.ctx.font = '18px Arial';
+                    this.ctx.fillText(this.isMobile ? 'Tap to restart' : 'Press R to restart', this.canvas.width/2, this.canvas.height/2 + 40);
+                }
+                
+                if (this.gameState === 'won') {
+                    this.ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+                    this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+                    this.ctx.fillStyle = '#FFD700';
+                    this.ctx.font = '36px Arial';
+                    this.ctx.textAlign = 'center';
+                    this.ctx.fillText('You Won!', this.canvas.width/2, this.canvas.height/2);
+                    this.ctx.font = '18px Arial';
+                    this.ctx.fillText(this.isMobile ? 'Tap to play again' : 'Press R to play again', this.canvas.width/2, this.canvas.height/2 + 40);
+                }
+                
+                this.ctx.textAlign = 'left';
+            }
+            
+            gameLoop() {
+                if (this.gameState === 'playing') {
+                    this.updateGame();
+                }
+                this.render();
+                
+                if (this.gameState === 'playing' || this.gameState === 'gameOver' || this.gameState === 'won') {
+                    requestAnimationFrame(() => this.gameLoop());
+                }
+            }
+        }
+        
+        // Start the game when page loads
+        window.addEventListener('load', () => {
+            const game = new MarioGame();
+            
+            // Add touch restart functionality
+            document.getElementById('gameCanvas').addEventListener('touchstart', (e) => {
+                if (game.gameState === 'gameOver' || game.gameState === 'won') {
+                    e.preventDefault();
+                    game.startGame();
+                }
+            });
+        });
+    </script>
+</body>
+</html>
